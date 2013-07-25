@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>96909668-DFB0-4546-B558-3307C5E833C0</string>
+	<key>IDESourceControlProjectName</key>
+	<string>MSCTimeSpanPicker</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>C2F123F2-D0C7-4D44-BA45-E7C649507DC6</key>
+		<string>ssh://github.com/scheinem/MSCTimeSpanPicker.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>MSCTimeSpanPicker.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>C2F123F2-D0C7-4D44-BA45-E7C649507DC6</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/scheinem/MSCTimeSpanPicker.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>C2F123F2-D0C7-4D44-BA45-E7C649507DC6</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C2F123F2-D0C7-4D44-BA45-E7C649507DC6</string>
+			<key>IDESourceControlWCCName</key>
+			<string>MSCTimeSpanPicker</string>
+		</dict>
+	</array>
+</dict>
+</plist>

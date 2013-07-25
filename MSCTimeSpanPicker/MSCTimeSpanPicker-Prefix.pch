@@ -1,0 +1,7 @@
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import <UIKit/UIKit.h>
+#endif
+
+#define MSCTimeSpanPickerResourcesBundle           [NSBundle bundleWithPath:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"MSCTimeSpanPickerResources.bundle"]]
+#define MSCTimeSpanPickerLocalizedString(key)      [MSCTimeSpanPickerResourcesBundle localizedStringForKey:(key) value:@"" table:nil]
