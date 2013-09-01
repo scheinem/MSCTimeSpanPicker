@@ -14,36 +14,47 @@
 @interface MSCTimeSpanPicker ()
 
 @property (nonatomic, strong) MSCTimeSpanPickerView *timeSpanPickerView;
-@property (nonatomic, strong) UIToolbar *timeSpanPickerToolbar;
 
 @end
 
 @implementation MSCTimeSpanPicker
 
-- (id)init {
+- (instancetype)init {
+    self = [self initInStandaloneMode:YES];
+    if (self) {
+    }
+    return self;
+}
+
+- (instancetype)initInStandaloneMode:(BOOL)standaloneMode {
     self = [super init];
     if (self) {
         _timeSpanPickerView = [[MSCTimeSpanPickerView alloc] init];
         _timeSpanPickerView.delegate = self;
-        
-        _timeSpanPickerToolbar = [[UIToolbar alloc] init];
-        _timeSpanPickerToolbar.frame = CGRectMake(0.f, 0.f, _timeSpanPickerView.frame.size.width, 40.f);
-        UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Cancel") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerCancelled:)];
-        UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-        UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Save") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerSaved:)];
-        _timeSpanPickerToolbar.items = @[cancelButton, flexibleSpace, saveButton];
-        
-        CGRect ownFrame = self.frame;
-        ownFrame.size = _timeSpanPickerView.frame.size;
-        ownFrame.size.height += _timeSpanPickerToolbar.frame.size.height;
-        self.frame = ownFrame;
-        
-        CGRect timeSpanPickerViewFrame = _timeSpanPickerView.frame;
-        timeSpanPickerViewFrame.origin.y = _timeSpanPickerToolbar.frame.size.height;
-        _timeSpanPickerView.frame = timeSpanPickerViewFrame;
-        
         [self addSubview:_timeSpanPickerView];
-        [self addSubview:_timeSpanPickerToolbar];
+        
+        if (standaloneMode) {
+            UIToolbar *timeSpanPickerToolbar = [[UIToolbar alloc] init];
+            timeSpanPickerToolbar.frame = CGRectMake(0.f, 0.f, _timeSpanPickerView.frame.size.width, 40.f);
+            UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Cancel") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerCancelled:)];
+            UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+            UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Save") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerSaved:)];
+            timeSpanPickerToolbar.items = @[cancelButton, flexibleSpace, saveButton];
+            
+            CGRect ownFrame = self.frame;
+            ownFrame.size = _timeSpanPickerView.frame.size;
+            ownFrame.size.height += timeSpanPickerToolbar.frame.size.height;
+            self.frame = ownFrame;
+            
+            CGRect timeSpanPickerViewFrame = _timeSpanPickerView.frame;
+            timeSpanPickerViewFrame.origin.y = timeSpanPickerToolbar.frame.size.height;
+            _timeSpanPickerView.frame = timeSpanPickerViewFrame;
+            
+            [self addSubview:timeSpanPickerToolbar];
+        }
+        else {
+            self.frame = _timeSpanPickerView.frame;
+        }
         
         _defaultTimeSpan = 30;
         _animateDefaultTimeSpanSetting = YES;
@@ -176,10 +187,6 @@
 
 - (void)dismiss {
     [self removeFromSuperview];
-    [self.timeSpanPickerView removeFromSuperview];
-    self.timeSpanPickerView = nil;
-    [self.timeSpanPickerToolbar removeFromSuperview];
-    self.timeSpanPickerToolbar = nil;
 }
 
 @end

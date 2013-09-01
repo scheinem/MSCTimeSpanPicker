@@ -10,10 +10,8 @@
 
 @protocol MSCTimeSpanPickerDelegate <NSObject>
 
-@required
-- (void)timeSpanPickerSaved:(MSCTimeSpanPicker *)timeSpanPicker;
-
 @optional
+- (void)timeSpanPickerSaved:(MSCTimeSpanPicker *)timeSpanPicker;
 - (void)timeSpanPicker:(MSCTimeSpanPicker *)timeSpanPicker selectedFrom:(NSDate *)from andTo:(NSDate *)to;
 - (void)timeSpanPickerCancelled:(MSCTimeSpanPicker *)timeSpanPicker;
 
