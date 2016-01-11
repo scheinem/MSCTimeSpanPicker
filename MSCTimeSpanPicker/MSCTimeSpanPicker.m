@@ -8,53 +8,28 @@
 
 #import "MSCTimeSpanPicker.h"
 #import "MSCTimeSpanPickerView.h"
-#import "NSDate+MSCTimeSpanPickerDate.h"
-#import "NSDateComponents+MSCTimeSpanPickerDateComponents.h"
 
-@interface MSCTimeSpanPicker ()
+@interface MSCTimeSpanPicker () <UIPickerViewDelegate>
 
 @property (nonatomic, strong) MSCTimeSpanPickerView *timeSpanPickerView;
+
+@property (nonatomic, strong) NSDateComponents *fromDateComponents;
+@property (nonatomic, strong) NSDateComponents *toDateComponents;
 
 @end
 
 @implementation MSCTimeSpanPicker
 
-- (instancetype)init {
-    self = [self initInStandaloneMode:YES];
-    if (self) {
-    }
-    return self;
-}
+////////////////////////////////////////////////////////////////////////
+#pragma mark - Life Cycle
+////////////////////////////////////////////////////////////////////////
 
-- (instancetype)initInStandaloneMode:(BOOL)standaloneMode {
-    self = [super init];
+- (instancetype)init {
+    self = [super initWithFrame:CGRectZero];
     if (self) {
         _timeSpanPickerView = [[MSCTimeSpanPickerView alloc] init];
         _timeSpanPickerView.delegate = self;
         [self addSubview:_timeSpanPickerView];
-        
-        if (standaloneMode) {
-            UIToolbar *timeSpanPickerToolbar = [[UIToolbar alloc] init];
-            timeSpanPickerToolbar.frame = CGRectMake(0.f, 0.f, _timeSpanPickerView.frame.size.width, 40.f);
-            UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Cancel") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerCancelled:)];
-            UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-            UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:MSCTimeSpanPickerLocalizedString(@"Save") style:UIBarButtonItemStyleBordered target:self action:@selector(changeTimeSpanPickerSaved:)];
-            timeSpanPickerToolbar.items = @[cancelButton, flexibleSpace, saveButton];
-            
-            CGRect ownFrame = self.frame;
-            ownFrame.size = _timeSpanPickerView.frame.size;
-            ownFrame.size.height += timeSpanPickerToolbar.frame.size.height;
-            self.frame = ownFrame;
-            
-            CGRect timeSpanPickerViewFrame = _timeSpanPickerView.frame;
-            timeSpanPickerViewFrame.origin.y = timeSpanPickerToolbar.frame.size.height;
-            _timeSpanPickerView.frame = timeSpanPickerViewFrame;
-            
-            [self addSubview:timeSpanPickerToolbar];
-        }
-        else {
-            self.frame = _timeSpanPickerView.frame;
-        }
         
         _defaultTimeSpan = 30;
         _animateDefaultTimeSpanSetting = YES;
@@ -66,19 +41,37 @@
 }
 
 ////////////////////////////////////////////////////////////////////////
+#pragma mark - UIView
+////////////////////////////////////////////////////////////////////////
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    self.timeSpanPickerView.frame = self.bounds;
+}
+
+////////////////////////////////////////////////////////////////////////
 #pragma mark - MSCTimeSpanPicker
 ////////////////////////////////////////////////////////////////////////
 
 - (void)setFrom:(NSDate *)from {
     _from = from;
-    [self.timeSpanPickerView selectRow:[self.from gregorianDateComponents].hour inComponent:0 animated:NO];
-    [self.timeSpanPickerView selectRow:[self.from gregorianDateComponents].minute inComponent:1 animated:NO];
+    
+    self.fromDateComponents = [self dateComponentsInCurrentCalendarForDate:from];
+}
+
+- (void)setFromDateComponents:(NSDateComponents *)fromDateComponents {
+    [self setFromDateComponents:fromDateComponents animated:NO];
 }
 
 - (void)setTo:(NSDate *)to {
     _to = to;
-    [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].hour inComponent:3 animated:NO];
-    [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].minute inComponent:4 animated:NO];
+    
+    self.toDateComponents = [self dateComponentsInCurrentCalendarForDate:to];
+}
+
+- (void)setToDateComponents:(NSDateComponents *)toDateComponents {
+    [self setToDateComponents:toDateComponents animated:NO];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -86,7 +79,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 - (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
-    return [NSString stringWithFormat:@"%02i", row];
+    return [NSString stringWithFormat:@"%02li", (long)row];
 }
 
 - (CGFloat)pickerView:(UIPickerView *)pickerView widthForComponent:(NSInteger)component {
@@ -98,14 +91,12 @@
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     
-    NSDateComponents *components = nil;
     BOOL propertyChanged = NO;
     
     switch (component) {
         case 0: {
-            components = [self.from gregorianDateComponents];
-            [components setHour:row];
-            self.from = [components gregorianDate];
+            [self.fromDateComponents setHour:row];
+            self.from = [self dateInCurrentCalendarForDateComponents:self.fromDateComponents];
             
             [self refreshToDateDependingOnFromDate];
             
@@ -113,10 +104,10 @@
             
             break;
         }
+            
         case 1: {
-            components = [self.from gregorianDateComponents];
-            [components setMinute:row];
-            self.from = [components gregorianDate];
+            [self.fromDateComponents setMinute:row];
+            self.from = [self dateInCurrentCalendarForDateComponents:self.fromDateComponents];
             
             [self refreshToDateDependingOnFromDate];
             
@@ -124,31 +115,35 @@
             
             break;
         }
-        case 3: {
-            components = [self.to gregorianDateComponents];
-            [components setHour:row];
             
-            if ([[components gregorianDate] timeIntervalSinceDate:self.from] < 0.f) {
-                [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].hour inComponent:3 animated:YES];
-            }
-            else if ([self.to timeIntervalSinceDate:[components gregorianDate]] != 0.f) {
-                self.to = [components gregorianDate];
+        case 3: {
+            if (row < self.fromDateComponents.hour ||
+                (row == self.fromDateComponents.hour && self.toDateComponents.minute <= self.fromDateComponents.minute )) {
+                [self.timeSpanPickerView selectRow:self.toDateComponents.hour inComponent:3 animated:YES];
+                
+            } else {
+                [self.toDateComponents setHour:row];
+                self.to = [self dateInCurrentCalendarForDateComponents:self.toDateComponents];
+                
                 propertyChanged = YES;
             }
+            
             break;
         }
+            
         case 4: {
-            components = [self.to gregorianDateComponents];
-            [components setMinute:row];
-            if ([[components gregorianDate] timeIntervalSinceDate:self.from] < 0.f) {
-                [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].minute inComponent:4 animated:YES];
-            }
-            else if ([self.to timeIntervalSinceDate:[components gregorianDate]] != 0.f) {
-                self.to = [components gregorianDate];
+            if (self.fromDateComponents.hour == self.toDateComponents.hour &&
+                row <= self.fromDateComponents.minute) {
+                [self.timeSpanPickerView selectRow:self.toDateComponents.minute inComponent:4 animated:YES];
+                
+            } else {
+                [self.toDateComponents setMinute:row];
+                self.to = [self dateInCurrentCalendarForDateComponents:self.toDateComponents];
+                
                 propertyChanged = YES;
             }
-            break;
         }
+            
         default: {
             break;
         }
@@ -165,28 +160,57 @@
 ////////////////////////////////////////////////////////////////////////
 
 - (void)refreshToDateDependingOnFromDate {
-    // set toDate to fromDate + defaultTimeSpan
     _to = [self.from dateByAddingTimeInterval:self.defaultTimeSpan * 60];
-    [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].hour inComponent:3 animated:self.animateDefaultTimeSpanSetting];
-    [self.timeSpanPickerView selectRow:[self.to gregorianDateComponents].minute inComponent:4 animated:self.animateDefaultTimeSpanSetting];
+    
+    [self setToDateComponents:[self dateComponentsInCurrentCalendarForDate:_to]
+                     animated:self.animateDefaultTimeSpanSetting];
 }
 
-- (void)changeTimeSpanPickerCancelled:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(timeSpanPickerCancelled:)]) {
-        [self.delegate timeSpanPickerCancelled:self];
+- (NSDateComponents *)dateComponentsInCurrentCalendarForDate:(NSDate *)date {
+    if (date == nil) {
+        return nil;
     }
-    [self dismiss];
+    
+    NSCalendar *currentCalendar = [NSCalendar currentCalendar];
+    return [currentCalendar components:(NSCalendarUnitYear |
+                                        NSCalendarUnitMonth |
+                                        NSCalendarUnitDay |
+                                        NSCalendarUnitHour |
+                                        NSCalendarUnitMinute |
+                                        NSCalendarUnitSecond |
+                                        NSCalendarUnitNanosecond |
+                                        NSCalendarUnitTimeZone) fromDate:date];
 }
 
-- (void)changeTimeSpanPickerSaved:(id)sender {
-    if ([self.delegate conformsToProtocol:@protocol(MSCTimeSpanPickerDelegate)]) {
-        [self.delegate timeSpanPickerSaved:self];
+- (NSDate *)dateInCurrentCalendarForDateComponents:(NSDateComponents *)dateComponents {
+    if (dateComponents == nil) {
+        return nil;
     }
-    [self dismiss];
+    
+    NSCalendar *currentCalendar = [NSCalendar currentCalendar];
+    return [currentCalendar dateFromComponents:dateComponents];
 }
 
-- (void)dismiss {
-    [self removeFromSuperview];
+- (void)setFromDateComponents:(NSDateComponents *)fromDateComponents animated:(BOOL)animated {
+    _fromDateComponents = fromDateComponents;
+    
+    [self scrollToFromDateCompononents:_fromDateComponents animated:animated];
+}
+
+- (void)setToDateComponents:(NSDateComponents *)toDateComponents animated:(BOOL)animated {
+    _toDateComponents = toDateComponents;
+    
+    [self scrollToToDateCompononents:toDateComponents animated:animated];
+}
+
+- (void)scrollToFromDateCompononents:(NSDateComponents *)fromDateComponents animated:(BOOL)animated {
+    [self.timeSpanPickerView selectRow:fromDateComponents.hour inComponent:0 animated:animated];
+    [self.timeSpanPickerView selectRow:fromDateComponents.minute inComponent:1 animated:animated];
+}
+
+- (void)scrollToToDateCompononents:(NSDateComponents *)toDateComponents animated:(BOOL)animated {
+    [self.timeSpanPickerView selectRow:toDateComponents.hour inComponent:3 animated:animated];
+    [self.timeSpanPickerView selectRow:toDateComponents.minute inComponent:4 animated:animated];
 }
 
 @end

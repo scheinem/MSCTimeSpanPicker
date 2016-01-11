@@ -6,9 +6,17 @@
 //  Copyright (c) 2013 Manfred Scheiner (@scheinem). All rights reserved.
 //
 
-#import "MSCTimeSpanPickerDelegate.h"
+@import UIKit;
 
-@interface MSCTimeSpanPicker : UIView <UIPickerViewDelegate>
+@class MSCTimeSpanPicker;
+
+@protocol MSCTimeSpanPickerDelegate <NSObject>
+@optional
+- (void)timeSpanPicker:(MSCTimeSpanPicker *)timeSpanPicker selectedFrom:(NSDate *)from andTo:(NSDate *)to;
+
+@end
+
+@interface MSCTimeSpanPicker : UIView
 
 @property (nonatomic, strong) NSDate *from;
 @property (nonatomic, strong) NSDate *to;
@@ -34,17 +42,8 @@
 @property (nonatomic, assign) BOOL animateDefaultTimeSpanSetting;
 
 /**
- * Returns a MSCTimeSpanPicker instance in standalone mode, which means the time span picker
- * with a UIToolbar (including the options 'Hide' and 'Save') above.
- *
- * Technically just calls [self initInStandaloneMode:YES]
+ * Returns a MSCTimeSpanPicker instance.
  */
 - (instancetype)init;
-
-/**
- * Returns a MSCTimeSpanPicker instance without toolbar, only the pure time span picker.
- * Can be used for UITableView inline presentation like in iOS 7's Calendar.app
- */
-- (instancetype)initInStandaloneMode:(BOOL)standaloneMode;
 
 @end
