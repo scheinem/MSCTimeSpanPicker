@@ -86,7 +86,7 @@
     if (component == 2) {
         return 55.f;
     }
-    return 42.f;
+    return 48.f;
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
